@@ -64,11 +64,11 @@ task 'package:debian' => :fakeroot do
 
   sh "cp -R distro/debian fakeroot/DEBIAN"
   sh "mkdir -p fakeroot/usr/local/src/shadow-1.4.1"
-  sh "cp -R distro/shadow-1.4.1 fakeroot/usr/local/src/shadow-1.4.1"
-  sh "cd fakeroot/usr/local/src/shadow-1.4.1"
-  sh "fakeroot/usr/local/bin/ruby extconf.rb"
-  sh "make"
-  sh "make install"
+  sh "cp -R distro/shadow-1.4.1 fakeroot/usr/local/src"
+  sh ""
+  sh "fakeroot/usr/local/bin/ruby fakeroot/usr/local/src/shadow-1.4.1/extconf.rb"
+  sh "make -C fakeroot/usr/local/src/shadow-1.4.1"
+  sh "make -C fakeroot/usr/local/src/shadow-1.4.1 install"
 
   sh "sed -i 's/Version: .*/Version: #{VENDOR_RUBY_VERSION}-#{REE_VERSION}/' fakeroot/DEBIAN/control"
   sh "sed -i 's/Architecture: .*/Architecture: #{arch}/' fakeroot/DEBIAN/control" 
