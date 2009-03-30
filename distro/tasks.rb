@@ -68,7 +68,8 @@ task 'package:debian' => :fakeroot do
   sh "ruby fakeroot/usr/local/src/shadow-1.4.1/extconf.rb"
   sh "mv Makefile fakeroot/usr/local/src/shadow-1.4.1/"
   sh "make -C fakeroot/usr/local/src/shadow-1.4.1"
-  sh "DESTDIR=fakeroot make -C fakeroot/usr/local/src/shadow-1.4.1 install"
+  sh "export DESTDIR=fakeroot"
+  sh "make -C fakeroot/usr/local/src/shadow-1.4.1 install"
 
   sh "sed -i 's/Version: .*/Version: #{VENDOR_RUBY_VERSION}-#{REE_VERSION}/' fakeroot/DEBIAN/control"
   sh "sed -i 's/Architecture: .*/Architecture: #{arch}/' fakeroot/DEBIAN/control" 
