@@ -63,18 +63,18 @@ task 'package:debian' => :fakeroot do
   end
 
   sh "cp -R distro/debian fakeroot/DEBIAN"
+  
+  # Compile and install in shadow support
   sh "mkdir -p fakeroot/usr/local/src/shadow-1.4.1"
   sh "cp -R distro/shadow-1.4.1 fakeroot/usr/local/src"
   sh "ruby fakeroot/usr/local/src/shadow-1.4.1/extconf.rb"
   sh "mv Makefile fakeroot/usr/local/src/shadow-1.4.1/"
   sh "make -C fakeroot/usr/local/src/shadow-1.4.1"
   sh "/usr/bin/install -c -m 0755 fakeroot/usr/local/src/shadow-1.4.1/shadow.so fakeroot/usr/local/lib/ruby/site_ruby/1.8/x86_64-linux"
-
   sh "sed -i 's/Version: .*/Version: #{VENDOR_RUBY_VERSION}-#{REE_VERSION}/' fakeroot/DEBIAN/control"
   sh "sed -i 's/Architecture: .*/Architecture: #{arch}/' fakeroot/DEBIAN/control" 
   sh "chown -R root:root fakeroot"
-
-  sh "fakeroot dpkg -b fakeroot ruby-enterprise_#{VENDOR_RUBY_VERSION}-#{REE_VERSION}_#{arch}.deb"
+  sh "dpkg -b fakeroot ruby-enterprise_#{VENDOR_RUBY_VERSION}-#{REE_VERSION}_#{arch}.deb"
 end
 
 # Check whether the specified command is in $PATH, and return its
