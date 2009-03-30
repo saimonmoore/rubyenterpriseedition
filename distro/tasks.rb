@@ -35,7 +35,7 @@ task :fakeroot do
 	sh "rm -rf fakeroot"
 	sh "mkdir fakeroot"
 	fakeroot = File.expand_path("fakeroot")
-	sh "#{distdir}/installer --auto='/opt/ruby-enterprise' --destdir='#{fakeroot}' #{ENV['ARGS']}"
+	sh "#{distdir}/installer --auto='/usr/local' --destdir='#{fakeroot}' #{ENV['ARGS']}"
 	each_elf_binary(fakeroot) do |filename|
 		sh "strip --strip-debug '#{filename}'"
 	end
@@ -44,8 +44,37 @@ end
 
 desc "Create a Debian package."
 task 'package:debian' => :fakeroot do
-	sh "cp -R distro/debian fakeroot/DEBIAN"
-	sh "fakeroot dpkg -b fakeroot ruby-enterprise_#{VENDOR_RUBY_VERSION}-#{REE_VERSION}_i386.deb"
+  if Process.euid != 0
+          STDERR.puts
+          STDERR.puts "*** ERROR: the 'package:debian' task must be run as root."
+          STDERR.puts
+          exit 1
+  end
+
+  fakeroot = "pkg/fakeroot"
+  raw_arch = `uname -m`.strip
+  arch = case raw_arch
+  when /^i.86$/
+          "i386"
+  when /^x86_64/
+          "amd64"
+  else
+          raw_arch
+  end
+
+  sh "cp -R distro/debian fakeroot/DEBIAN"
+  sh "mkdir -p fakeroot/usr/local/src/shadow-1.4.1"
+  sh "cp -R distro/shadow-1.4.1 fakeroot/usr/local/src/shadow-1.4.1"
+  sh "cd fakeroot/usr/local/src/shadow-1.4.1"
+  sh "fakeroot/usr/local/bin/ruby extconf.rb"
+  sh "make"
+  sh "make install"
+
+  sh "sed -i 's/Version: .*/Version: #{VENDOR_RUBY_VERSION}-#{REE_VERSION}/' fakeroot/DEBIAN/control"
+  sh "sed -i 's/Architecture: .*/Architecture: #{arch}/' fakeroot/DEBIAN/control" 
+  sh "chown -R root:root fakeroot"
+
+  sh "fakeroot dpkg -b fakeroot ruby-enterprise_#{VENDOR_RUBY_VERSION}-#{REE_VERSION}_#{arch}.deb"
 end
 
 # Check whether the specified command is in $PATH, and return its
